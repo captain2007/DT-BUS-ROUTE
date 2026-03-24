@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AITAM Transit — Bus Route System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href = "/styleBUS.css" rel="stylesheet">
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div id="toast"></div>
+
+<!-- ════════════════ LOGIN ════════════════ -->
+<div id="loginPage" class="page active">
+  <div class="login-logo">🚌 AITAM Transit</div>
+  <h1 class="login-title">Bus Route<br>Management</h1>
+  <p class="login-sub">Aditya Institute of Technology & Management, Tekkali — Select your role</p>
+  <div class="role-cards">
+    <div class="role-card" onclick="login('admin')">
+      <div class="icon">🛠️</div>
+      <h3>Admin</h3>
+      <p>Manage buses, assign routes, track schedules</p>
+    </div>
+    <div class="role-card" onclick="login('student')">
+      <div class="icon">🎓</div>
+      <h3>Student</h3>
+      <p>View bus numbers, routes and stop information</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ ADMIN ════════════════ -->
+<div id="adminPage" class="page">
+  <nav class="topnav">
+    <div class="nav-brand">AITAM<span>Transit</span></div>
+    <div class="nav-right">
+      <span class="nav-badge badge-admin">⚙ Admin Panel</span>
+      <button class="btn-logout" onclick="logout()">← Logout</button>
+    </div>
+  </nav>
+  <div class="main-content">
+    <!-- STATS -->
+    <div class="stats-row" id="adminStats"></div>
+
+    <!-- TABS -->
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('buses')">🚌 Buses</button>
+      <button class="tab-btn" onclick="switchTab('routes')">🗺 Routes</button>
+      <button class="tab-btn" onclick="switchTab('assign')">🔗 Assign Route</button>
+    </div>
+
+    <!-- TAB: BUSES -->
+    <div class="tab-pane active" id="tab-buses">
+      <div class="form-card">
+        <div class="section-title">Add New Bus</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Bus Number</label>
+            <input id="busNum" placeholder="e.g. AITAM-08" />
+          </div>
+          <div class="form-group">
+            <label>Driver Name</label>
+            <input id="busDriver" placeholder="e.g. Ramu Krishna" />
+          </div>
+          <div class="form-group">
+            <label>Capacity (seats)</label>
+            <input id="busCap" type="number" placeholder="e.g. 52" />
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="busStatus">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="addBus()">＋ Add Bus</button>
+        </div>
+      </div>
+      <div class="section-title">All Buses</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Bus No.</th>
+              <th>Driver</th>
+              <th>Capacity</th>
+              <th>Assigned Route</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="busTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: ROUTES -->
+    <div class="tab-pane" id="tab-routes">
+      <div class="form-card">
+        <div class="section-title">Create Route</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Route Name</label>
+            <input id="routeName" placeholder="SRIKAKULAM" />
+          </div>
+          <div class="form-group">
+            <label>Route Code</label>
+            <input id="routeCode" placeholder="e.g. R-01" />
+          </div>
+          <div class="form-group">
+            <label>Departure Time</label>
+            <input id="routeTime" type="time" value="07:30" />
+          </div>
+          <div class="form-group">
+            <label>Distance (km)</label>
+            <input id="routeDist" type="number" placeholder="e.g. 18" />
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:14px">
+          <label>Stops (one per line — in order)</label>
+          <textarea id="routeStops" placeholder="Srikakulam&#10;RTC Complex&#10;Narasannapeta&#10;Kotabommali&#10;AITAM COLLEGE"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="addRoute()">＋ Create Route</button>
+        </div>
+      </div>
+      <div class="section-title">All Routes</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Route Name</th>
+              <th>Departure</th>
+              <th>Distance</th>
+              <th>Stops</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="routeTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: ASSIGN -->
+    <div class="tab-pane" id="tab-assign">
+      <div class="form-card">
+        <div class="section-title">Assign Route to Bus</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Select Bus</label>
+            <select id="assignBus"></select>
+          </div>
+          <div class="form-group">
+            <label>Select Route</label>
+            <select id="assignRoute"></select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="assignRoute()">🔗 Assign Route</button>
+          <button class="btn btn-secondary" onclick="unassignRoute()">✕ Remove Assignment</button>
+        </div>
+      </div>
+      <div class="section-title">Current Assignments</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Bus No.</th>
+              <th>Driver</th>
+              <th>Route Code</th>
+              <th>Route Name</th>
+              <th>Departure</th>
+              <th>No. of Stops</th>
+            </tr>
+          </thead>
+          <tbody id="assignTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ STUDENT ════════════════ -->
+<div id="studentPage" class="page">
+  <nav class="topnav">
+    <div class="nav-brand">AITAM<span>Transit</span></div>
+    <div class="nav-right">
+      <span class="nav-badge badge-student">🎓 Student View</span>
+      <button class="btn-logout" onclick="logout()">← Logout</button>
+    </div>
+  </nav>
+  <div class="main-content">
+    <div class="section-title" style="font-size:26px;margin-bottom:6px">Find Your Bus</div>
+    <p style="color:var(--muted);margin-bottom:24px;font-size:14px">Search by bus number, route name or stop to find your AITAM bus.</p>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="studentSearch" placeholder="Search bus number or route…" oninput="renderStudentBuses()" />
+    </div>
+    <div class="bus-grid" id="studentBusGrid"></div>
+  </div>
+</div>
+
+<!-- ROUTE DETAIL MODAL -->
+<div class="modal-overlay" id="routeModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle"></div>
+    <div id="modalBody"></div>
+    <div class="form-actions" style="margin-top:20px">
+      <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA STORE ──
+let buses = [
+  { id:'AITAM-01', driver:'Suresh Rao',       cap:52, status:'active',   routeId:'R-01' },
+  { id:'AITAM-02', driver:'Venkata Ramana',   cap:52, status:'active',   routeId:'R-02' },
+  { id:'AITAM-03', driver:'Nagaraju Patnaik', cap:52, status:'active',   routeId:'R-03' },
+  { id:'AITAM-04', driver:'Krishna Murthy',   cap:40, status:'active',   routeId:'R-04' },
+  { id:'AITAM-05', driver:'Srinivas Babu',    cap:52, status:'active',   routeId:'R-05' },
+  { id:'AITAM-06', driver:'Ravi Shankar',     cap:52, status:'active',   routeId:'R-06' },
+  { id:'AITAM-07', driver:'Appala Naidu',     cap:40, status:'inactive', routeId:null   },
+];
+let routes = [
+  {
+    id:'R-01', name:'Srikakulam Town Route', code:'R-01', time:'07:00', dist:22,
+    stops:['Srikakulam Bus Stand','Clock Tower','Collector Office','NH-16 Junction','Etcherla','Mandasa Road','AITAM Main Gate']
+  },
+  {
+    id:'R-02', name:'Narasannapeta Route', code:'R-02', time:'06:45', dist:28,
+    stops:['Narasannapeta Town','Hiramandalam Road','Kanchili Junction','Burja','Tekkali Town Centre','AITAM Main Gate']
+  },
+  {
+    id:'R-03', name:'Palasa–Kasibugga Route', code:'R-03', time:'06:30', dist:35,
+    stops:['Palasa Bus Stand','Kasibugga','Mandasa','Vajrapukotturu','Tekkali Bypass','AITAM Main Gate']
+  },
+  {
+    id:'R-04', name:'Amadalavalasa Route', code:'R-04', time:'06:50', dist:18,
+    stops:['Amadalavalasa Town','Gara Junction','Sarubujjili','Tekkali Market','AITAM Campus Road','AITAM Main Gate']
+  },
+  {
+    id:'R-05', name:'Ichapuram Route', code:'R-05', time:'06:15', dist:45,
+    stops:['Ichapuram Bus Stand','Borigam','Kaviti','Vajrapukotturu','Mandasa','Tekkali Town Centre','AITAM Main Gate']
+  },
+  {
+    id:'R-06', name:'Tekkali Local Route', code:'R-06', time:'07:20', dist:8,
+    stops:['Tekkali Bus Stand','Tekkali Market','NH-16 Tekkali','AITAM Campus Road','AITAM Main Gate']
+  },
+];
+
+// ── HELPERS ──
+function toast(msg, isErr=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isErr ? ' error' : '');
+  setTimeout(() => t.className = '', 2800);
+}
+
+function getRoute(id) { return routes.find(r => r.id === id); }
+
+// ── AUTH ──
+function login(role) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  if (role === 'admin') {
+    document.getElementById('adminPage').classList.add('active');
+    renderAdmin();
+  } else {
+    document.getElementById('studentPage').classList.add('active');
+    renderStudentBuses();
+  }
+}
+function logout() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('loginPage').classList.add('active');
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${name}')"]`).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if (name === 'assign') populateAssignDropdowns();
+}
+
+// ── ADMIN RENDER ──
+function renderAdmin() {
+  renderStats();
+  renderBusTable();
+  renderRouteTable();
+  renderAssignTable();
+}
+
+function renderStats() {
+  const active = buses.filter(b=>b.status==='active').length;
+  const assigned = buses.filter(b=>b.routeId).length;
+  document.getElementById('adminStats').innerHTML = `
+    <div class="stat-card"><div class="s-label">Total Buses</div><div class="s-value amber">${buses.length}</div></div>
+    <div class="stat-card"><div class="s-label">Active Buses</div><div class="s-value green">${active}</div></div>
+    <div class="stat-card"><div class="s-label">Total Routes</div><div class="s-value blue">${routes.length}</div></div>
+    <div class="stat-card"><div class="s-label">Assigned Buses</div><div class="s-value amber">${assigned}</div></div>
+  `;
+}
+
+function renderBusTable() {
+  const tbody = document.getElementById('busTableBody');
+  if (!buses.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="es-icon">🚌</div><h3>No buses added yet</h3></div></td></tr>`; return; }
+  tbody.innerHTML = buses.map(b => {
+    const r = getRoute(b.routeId);
+    return `<tr>
+      <td><span class="bus-num">${b.id}</span></td>
+      <td>${b.driver}</td>
+      <td>${b.cap} seats</td>
+      <td>${r ? `<span class="chip chip-route">${r.code} — ${r.name}</span>` : '<span style="color:var(--muted)">—</span>'}</td>
+      <td><span class="chip chip-${b.status}">${b.status==='active'?'✓ Active':'✗ Inactive'}</span></td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="deleteBus('${b.id}')">Delete</button>
+        <button class="btn btn-secondary btn-sm" style="margin-left:6px" onclick="toggleStatus('${b.id}')">Toggle</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRouteTable() {
+  const tbody = document.getElementById('routeTableBody');
+  if (!routes.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="es-icon">🗺</div><h3>No routes yet</h3></div></td></tr>`; return; }
+  tbody.innerHTML = routes.map(r => `<tr>
+    <td><span class="chip chip-route">${r.code}</span></td>
+    <td style="font-weight:600">${r.name}</td>
+    <td>${r.time}</td>
+    <td>${r.dist} km</td>
+    <td>${r.stops.length} stops</td>
+    <td>
+      <button class="btn btn-secondary btn-sm" onclick="viewRouteStops('${r.id}')">View Stops</button>
+      <button class="btn btn-danger btn-sm" style="margin-left:6px" onclick="deleteRoute('${r.id}')">Delete</button>
+    </td>
+  </tr>`).join('');
+}
+
+function renderAssignTable() {
+  const tbody = document.getElementById('assignTableBody');
+  const assigned = buses.filter(b => b.routeId);
+  if (!assigned.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="es-icon">🔗</div><h3>No assignments yet</h3></div></td></tr>`; return; }
+  tbody.innerHTML = assigned.map(b => {
+    const r = getRoute(b.routeId);
+    return `<tr>
+      <td><span class="bus-num">${b.id}</span></td>
+      <td>${b.driver}</td>
+      <td><span class="chip chip-route">${r.code}</span></td>
+      <td>${r.name}</td>
+      <td>${r.time}</td>
+      <td>${r.stops.length}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── ADD BUS ──
+function addBus() {
+  const id = document.getElementById('busNum').value.trim().toUpperCase();
+  const driver = document.getElementById('busDriver').value.trim();
+  const cap = parseInt(document.getElementById('busCap').value) || 52;
+  const status = document.getElementById('busStatus').value;
+  if (!id || !driver) { toast('Please fill Bus Number and Driver Name', true); return; }
+  if (buses.find(b => b.id === id)) { toast('Bus number already exists!', true); return; }
+  buses.push({ id, driver, cap, status, routeId: null });
+  ['busNum','busDriver','busCap'].forEach(x => document.getElementById(x).value = '');
+  renderAdmin();
+  toast(`Bus ${id} added successfully!`);
+}
+
+function deleteBus(id) {
+  if (!confirm(`Delete bus ${id}?`)) return;
+  buses = buses.filter(b => b.id !== id);
+  renderAdmin();
+  toast(`Bus ${id} removed`);
+}
+
+function toggleStatus(id) {
+  const b = buses.find(x => x.id === id);
+  b.status = b.status === 'active' ? 'inactive' : 'active';
+  renderAdmin();
+  toast(`Bus ${id} is now ${b.status}`);
+}
+
+// ── ADD ROUTE ──
+function addRoute() {
+  const name = document.getElementById('routeName').value.trim();
+  const code = document.getElementById('routeCode').value.trim().toUpperCase();
+  const time = document.getElementById('routeTime').value;
+  const dist = parseInt(document.getElementById('routeDist').value) || 0;
+  const stopsRaw = document.getElementById('routeStops').value.trim();
+  if (!name || !code) { toast('Route name and code required', true); return; }
+  if (routes.find(r => r.code === code)) { toast('Route code already exists!', true); return; }
+  const stops = stopsRaw.split('\n').map(s=>s.trim()).filter(Boolean);
+  if (stops.length < 2) { toast('Add at least 2 stops', true); return; }
+  routes.push({ id: code, name, code, time, dist, stops });
+  ['routeName','routeCode','routeStops'].forEach(x => document.getElementById(x).value = '');
+  document.getElementById('routeDist').value = '';
+  renderAdmin();
+  toast(`Route ${code} created!`);
+}
+
+function deleteRoute(id) {
+  if (!confirm('Delete this route? Buses assigned to it will be unassigned.')) return;
+  routes = routes.filter(r => r.id !== id);
+  buses.forEach(b => { if (b.routeId === id) b.routeId = null; });
+  renderAdmin();
+  toast('Route deleted');
+}
+
+// ── ASSIGN ──
+function populateAssignDropdowns() {
+  const bs = document.getElementById('assignBus');
+  const rs = document.getElementById('assignRoute');
+  bs.innerHTML = buses.map(b => `<option value="${b.id}">${b.id} — ${b.driver}</option>`).join('');
+  rs.innerHTML = routes.map(r => `<option value="${r.id}">${r.code} — ${r.name}</option>`).join('');
+}
+
+function assignRoute() {
+  const busId = document.getElementById('assignBus').value;
+  const routeId = document.getElementById('assignRoute').value;
+  const b = buses.find(x => x.id === busId);
+  if (!b) { toast('Select a bus', true); return; }
+  b.routeId = routeId;
+  renderAdmin();
+  toast(`Route assigned to Bus ${busId}!`);
+}
+
+function unassignRoute() {
+  const busId = document.getElementById('assignBus').value;
+  const b = buses.find(x => x.id === busId);
+  if (!b) return;
+  b.routeId = null;
+  renderAdmin();
+  toast(`Assignment removed from Bus ${busId}`);
+}
+
+// ── STUDENT ──
+function renderStudentBuses() {
+  const query = (document.getElementById('studentSearch')?.value || '').toLowerCase();
+  const grid = document.getElementById('studentBusGrid');
+  const activeBuses = buses.filter(b => b.status === 'active' && b.routeId);
+  const filtered = activeBuses.filter(b => {
+    const r = getRoute(b.routeId);
+    return !query || b.id.toLowerCase().includes(query) || (r && r.name.toLowerCase().includes(query)) || (r && r.stops.some(s => s.toLowerCase().includes(query)));
+  });
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="es-icon">🔍</div><h3>No buses found</h3><p>Try a different search term</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(b => {
+    const r = getRoute(b.routeId);
+    const stopList = r.stops.map((s, i) => `
+      <div class="stop-item">
+        <div class="stop-line">
+          <div class="stop-dot ${i===0?'first':i===r.stops.length-1?'last':''}"></div>
+          ${i < r.stops.length-1 ? '<div class="stop-connector"></div>' : ''}
+        </div>
+        <div class="stop-text">${s}${i===0?' <span style="color:var(--success);font-size:11px;font-weight:600">(Start)</span>':''}${i===r.stops.length-1?' <span style="color:var(--danger);font-size:11px;font-weight:600">(College)</span>':''}</div>
+      </div>`).join('');
+    return `
+      <div class="bus-card">
+        <div class="bc-header">
+          <div class="bc-bus-id">${b.id}<span>Bus Number</span></div>
+          <span class="chip chip-active">✓ Running</span>
+        </div>
+        <div class="bc-route-name">📍 ${r.name}</div>
+        <div style="margin-top:14px">
+          <div class="stops-list">${stopList}</div>
+        </div>
+        <div class="bc-footer">
+          <span>🕐 Departs: <strong>${r.time}</strong></span>
+          <span>📏 Distance: <strong>${r.dist} km</strong></span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── VIEW STOPS MODAL ──
+function viewRouteStops(id) {
+  const r = getRoute(id);
+  document.getElementById('modalTitle').textContent = `${r.code} — ${r.name}`;
+  const stops = r.stops.map((s, i) => `
+    <div class="stop-item">
+      <div class="stop-line">
+        <div class="stop-dot ${i===0?'first':i===r.stops.length-1?'last':''}"></div>
+        ${i < r.stops.length-1 ? '<div class="stop-connector"></div>' : ''}
+      </div>
+      <div class="stop-text">${s}</div>
+    </div>`).join('');
+  document.getElementById('modalBody').innerHTML = `
+    <div style="margin-bottom:12px;font-size:13px;color:var(--muted)">Departure: <strong style="color:var(--text)">${r.time}</strong> &nbsp;|&nbsp; Distance: <strong style="color:var(--text)">${r.dist} km</strong></div>
+    <div class="stops-list">${stops}</div>`;
+  document.getElementById('routeModal').classList.add('open');
+}
+function closeModal() { document.getElementById('routeModal').classList.remove('open'); }
+</script>
+</body>
+</html>
